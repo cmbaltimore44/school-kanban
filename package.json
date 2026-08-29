@@ -19,7 +19,8 @@
     "productName": "School Kanban",
     "mac": {
       "category": "public.app-category.education",
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "build/icon.icns"
     },
     "files": [
       "main.js",
@@ -27,7 +28,7 @@
       "index.html",
       "style.css",
       "renderer.js",
-      "assets/**/*"
+      "build/icon.png"
     ]
   }
 }

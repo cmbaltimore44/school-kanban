@@ -1,5 +1,7 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, nativeImage } = require('electron');
 const path = require('path');
+
+const iconPath = path.join(__dirname, 'build', 'icon.png');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -10,6 +12,7 @@ function createWindow() {
     title: 'School Kanban',
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#f5f5f7',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -21,6 +24,9 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(nativeImage.createFromPath(iconPath));
+  }
   createWindow();
 
   app.on('activate', () => {
