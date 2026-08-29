@@ -2,7 +2,8 @@
   'use strict';
 
   const STORAGE_TASKS = 'kanban.tasks';
-  const STORAGE_CLASSES = 'kanban.classes';
+  const STORAGE_CATEGORIES = 'kanban.categories';
+  const STORAGE_CATEGORIES_LEGACY = 'kanban.classes';
   const STORAGE_THEME = 'kanban.theme';
 
   const COLORS = [
@@ -12,15 +13,42 @@
 
   const COLUMNS = ['todo', 'doing', 'done'];
 
+  // ---------- one-time migration from the old "classes" naming ----------
+
+  function migrateLegacyStorage() {
+    if (!localStorage.getItem(STORAGE_CATEGORIES) && localStorage.getItem(STORAGE_CATEGORIES_LEGACY)) {
+      localStorage.setItem(STORAGE_CATEGORIES, localStorage.getItem(STORAGE_CATEGORIES_LEGACY));
+    }
+
+    const raw = localStorage.getItem(STORAGE_TASKS);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      let changed = false;
+      parsed.forEach((t) => {
+        if (t.classId !== undefined && t.categoryId === undefined) {
+          t.categoryId = t.classId;
+          delete t.classId;
+          changed = true;
+        }
+      });
+      if (changed) localStorage.setItem(STORAGE_TASKS, JSON.stringify(parsed));
+    } catch (e) {
+      // ignore malformed data, loadJSON below will fall back safely
+    }
+  }
+
+  migrateLegacyStorage();
+
   let tasks = loadJSON(STORAGE_TASKS, []);
-  let classes = loadJSON(STORAGE_CLASSES, []);
+  let categories = loadJSON(STORAGE_CATEGORIES, []);
 
   let editingTaskId = null;
   let selectedColor = COLORS[0];
   let isCustomColor = false;
   let draggingTaskId = null;
   let filterText = '';
-  let filterClassId = '';
+  let filterCategoryId = '';
 
   // ---------- persistence ----------
 
@@ -37,8 +65,8 @@
     localStorage.setItem(STORAGE_TASKS, JSON.stringify(tasks));
   }
 
-  function saveClasses() {
-    localStorage.setItem(STORAGE_CLASSES, JSON.stringify(classes));
+  function saveCategories() {
+    localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories));
   }
 
   function uid() {
@@ -51,8 +79,8 @@
     board: document.getElementById('board'),
     taskCount: document.getElementById('task-count'),
     searchInput: document.getElementById('search-input'),
-    classFilter: document.getElementById('class-filter'),
-    manageClassesBtn: document.getElementById('manage-classes-btn'),
+    categoryFilter: document.getElementById('category-filter'),
+    manageCategoriesBtn: document.getElementById('manage-categories-btn'),
     newTaskBtn: document.getElementById('new-task-btn'),
     themeToggleBtn: document.getElementById('theme-toggle-btn'),
 
@@ -62,18 +90,18 @@
     taskForm: document.getElementById('task-form'),
     taskId: document.getElementById('task-id'),
     taskTitle: document.getElementById('task-title'),
-    taskClass: document.getElementById('task-class'),
+    taskCategory: document.getElementById('task-category'),
     taskDue: document.getElementById('task-due'),
     taskPriority: document.getElementById('task-priority'),
     taskNotes: document.getElementById('task-notes'),
     taskDeleteBtn: document.getElementById('task-delete-btn'),
     taskCancelBtn: document.getElementById('task-cancel-btn'),
 
-    classModalOverlay: document.getElementById('class-modal-overlay'),
-    classModalClose: document.getElementById('class-modal-close'),
-    classList: document.getElementById('class-list'),
-    classForm: document.getElementById('class-form'),
-    className: document.getElementById('class-name'),
+    categoryModalOverlay: document.getElementById('category-modal-overlay'),
+    categoryModalClose: document.getElementById('category-modal-close'),
+    categoryList: document.getElementById('category-list'),
+    categoryForm: document.getElementById('category-form'),
+    categoryName: document.getElementById('category-name'),
     colorSwatches: document.getElementById('color-swatches'),
     customColorInput: document.getElementById('custom-color-input'),
   };
@@ -92,8 +120,8 @@
 
   // ---------- helpers ----------
 
-  function getClass(classId) {
-    return classes.find((c) => c.id === classId) || null;
+  function getCategory(categoryId) {
+    return categories.find((c) => c.id === categoryId) || null;
   }
 
   function dueStatus(task) {
@@ -114,37 +142,37 @@
 
   // ---------- rendering ----------
 
-  function renderClassFilterOptions() {
-    const previous = el.classFilter.value;
-    el.classFilter.innerHTML = '<option value="">All classes</option>';
-    classes.forEach((c) => {
+  function renderCategoryFilterOptions() {
+    const previous = el.categoryFilter.value;
+    el.categoryFilter.innerHTML = '<option value="">All categories</option>';
+    categories.forEach((c) => {
       const opt = document.createElement('option');
       opt.value = c.id;
       opt.textContent = c.name;
-      el.classFilter.appendChild(opt);
+      el.categoryFilter.appendChild(opt);
     });
-    if (classes.some((c) => c.id === previous)) el.classFilter.value = previous;
+    if (categories.some((c) => c.id === previous)) el.categoryFilter.value = previous;
   }
 
-  function renderTaskClassOptions() {
-    el.taskClass.innerHTML = '';
-    if (classes.length === 0) {
+  function renderTaskCategoryOptions() {
+    el.taskCategory.innerHTML = '';
+    if (categories.length === 0) {
       const opt = document.createElement('option');
       opt.value = '';
-      opt.textContent = 'No classes yet';
-      el.taskClass.appendChild(opt);
+      opt.textContent = 'No categories yet';
+      el.taskCategory.appendChild(opt);
       return;
     }
-    classes.forEach((c) => {
+    categories.forEach((c) => {
       const opt = document.createElement('option');
       opt.value = c.id;
       opt.textContent = c.name;
-      el.taskClass.appendChild(opt);
+      el.taskCategory.appendChild(opt);
     });
   }
 
   function matchesFilters(task) {
-    if (filterClassId && task.classId !== filterClassId) return false;
+    if (filterCategoryId && task.categoryId !== filterCategoryId) return false;
     if (filterText) {
       const haystack = (task.title + ' ' + (task.notes || '')).toLowerCase();
       if (!haystack.includes(filterText.toLowerCase())) return false;
@@ -172,7 +200,7 @@
       if (colTasks.length === 0) {
         const hint = document.createElement('div');
         hint.className = 'empty-hint';
-        hint.textContent = col === 'todo' ? 'No assignments yet' : 'Nothing here';
+        hint.textContent = col === 'todo' ? 'No tasks yet' : 'Nothing here';
         container.appendChild(hint);
         return;
       }
@@ -181,7 +209,7 @@
     });
 
     el.taskCount.textContent = tasks.length
-      ? `${tasks.length} assignment${tasks.length === 1 ? '' : 's'}`
+      ? `${tasks.length} task${tasks.length === 1 ? '' : 's'}`
       : '';
   }
 
@@ -211,12 +239,12 @@
     dot.title = (task.priority || 'medium') + ' priority';
     meta.appendChild(dot);
 
-    const cls = getClass(task.classId);
-    if (cls) {
+    const cat = getCategory(task.categoryId);
+    if (cat) {
       const chip = document.createElement('span');
       chip.className = 'chip';
-      chip.style.background = cls.color;
-      chip.textContent = cls.name;
+      chip.style.background = cat.color;
+      chip.textContent = cat.name;
       meta.appendChild(chip);
     }
 
@@ -248,21 +276,21 @@
 
   function openTaskModal(taskId, defaultColumn) {
     editingTaskId = taskId || null;
-    renderTaskClassOptions();
+    renderTaskCategoryOptions();
 
     if (editingTaskId) {
       const task = tasks.find((t) => t.id === editingTaskId);
-      el.taskModalTitle.textContent = 'Edit Assignment';
+      el.taskModalTitle.textContent = 'Edit Task';
       el.taskId.value = task.id;
       el.taskTitle.value = task.title;
-      el.taskClass.value = task.classId || '';
+      el.taskCategory.value = task.categoryId || '';
       el.taskDue.value = task.dueDate || '';
       el.taskPriority.value = task.priority || 'medium';
       el.taskNotes.value = task.notes || '';
       el.taskDeleteBtn.hidden = false;
       el.taskForm.dataset.column = task.column;
     } else {
-      el.taskModalTitle.textContent = 'New Assignment';
+      el.taskModalTitle.textContent = 'New Task';
       el.taskForm.reset();
       el.taskId.value = '';
       el.taskPriority.value = 'medium';
@@ -287,7 +315,7 @@
     if (editingTaskId) {
       const task = tasks.find((t) => t.id === editingTaskId);
       task.title = title;
-      task.classId = el.taskClass.value || null;
+      task.categoryId = el.taskCategory.value || null;
       task.dueDate = el.taskDue.value || null;
       task.priority = el.taskPriority.value;
       task.notes = el.taskNotes.value.trim();
@@ -295,7 +323,7 @@
       tasks.push({
         id: uid(),
         title,
-        classId: el.taskClass.value || null,
+        categoryId: el.taskCategory.value || null,
         dueDate: el.taskDue.value || null,
         priority: el.taskPriority.value,
         notes: el.taskNotes.value.trim(),
@@ -325,7 +353,7 @@
 
   el.newTaskBtn.addEventListener('click', () => openTaskModal(null, 'todo'));
 
-  // ---------- class modal ----------
+  // ---------- category modal ----------
 
   function renderColorSwatches() {
     el.colorSwatches.innerHTML = '';
@@ -351,18 +379,34 @@
     renderColorSwatches();
   });
 
-  function renderClassManagerList() {
-    el.classList.innerHTML = '';
-    if (classes.length === 0) {
+  function persistCategoryOrderFromDOM() {
+    const orderedIds = Array.from(el.categoryList.querySelectorAll('.category-row')).map((r) => r.dataset.id);
+    categories.sort((a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id));
+    saveCategories();
+    renderTaskCategoryOptions();
+    renderCategoryFilterOptions();
+  }
+
+  function renderCategoryManagerList() {
+    el.categoryList.innerHTML = '';
+    if (categories.length === 0) {
       const empty = document.createElement('div');
-      empty.className = 'empty-classes';
-      empty.textContent = 'No classes yet — add one below.';
-      el.classList.appendChild(empty);
+      empty.className = 'empty-categories';
+      empty.textContent = 'No categories yet — add one below.';
+      el.categoryList.appendChild(empty);
       return;
     }
-    classes.forEach((c) => {
+    categories.forEach((c) => {
       const row = document.createElement('div');
-      row.className = 'class-row';
+      row.className = 'category-row';
+      row.draggable = true;
+      row.dataset.id = c.id;
+
+      const handle = document.createElement('span');
+      handle.className = 'drag-handle';
+      handle.textContent = '⠿';
+      handle.title = 'Drag to reorder';
+      row.appendChild(handle);
 
       const swatch = document.createElement('span');
       swatch.className = 'swatch';
@@ -370,64 +414,82 @@
       row.appendChild(swatch);
 
       const name = document.createElement('span');
-      name.className = 'class-name';
+      name.className = 'category-name';
       name.textContent = c.name;
+      name.title = c.name;
       row.appendChild(name);
 
       const remove = document.createElement('button');
-      remove.className = 'remove-class';
+      remove.className = 'remove-category';
       remove.textContent = '×';
-      remove.title = 'Remove class';
+      remove.title = 'Remove category';
       remove.addEventListener('click', () => {
-        classes = classes.filter((x) => x.id !== c.id);
+        categories = categories.filter((x) => x.id !== c.id);
         tasks.forEach((t) => {
-          if (t.classId === c.id) t.classId = null;
+          if (t.categoryId === c.id) t.categoryId = null;
         });
-        saveClasses();
+        saveCategories();
         saveTasks();
-        renderClassManagerList();
-        renderClassFilterOptions();
+        renderCategoryManagerList();
+        renderCategoryFilterOptions();
+        renderTaskCategoryOptions();
         renderBoard();
       });
       row.appendChild(remove);
 
-      el.classList.appendChild(row);
+      row.addEventListener('dragstart', () => {
+        row.classList.add('dragging');
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        persistCategoryOrderFromDOM();
+      });
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const dragging = el.categoryList.querySelector('.category-row.dragging');
+        if (!dragging || dragging === row) return;
+        const rect = row.getBoundingClientRect();
+        const before = e.clientY - rect.top < rect.height / 2;
+        el.categoryList.insertBefore(dragging, before ? row : row.nextSibling);
+      });
+
+      el.categoryList.appendChild(row);
     });
   }
 
-  function openClassModal() {
-    selectedColor = COLORS[classes.length % COLORS.length];
+  function openCategoryModal() {
+    selectedColor = COLORS[categories.length % COLORS.length];
     isCustomColor = false;
     renderColorSwatches();
-    renderClassManagerList();
-    el.classModalOverlay.classList.add('open');
+    renderCategoryManagerList();
+    el.categoryModalOverlay.classList.add('open');
   }
 
-  function closeClassModal() {
-    el.classModalOverlay.classList.remove('open');
-    el.classForm.reset();
-    renderTaskClassOptions();
-    renderClassFilterOptions();
+  function closeCategoryModal() {
+    el.categoryModalOverlay.classList.remove('open');
+    el.categoryForm.reset();
+    renderTaskCategoryOptions();
+    renderCategoryFilterOptions();
   }
 
-  el.manageClassesBtn.addEventListener('click', openClassModal);
-  el.classModalClose.addEventListener('click', closeClassModal);
-  el.classModalOverlay.addEventListener('click', (e) => {
-    if (e.target === el.classModalOverlay) closeClassModal();
+  el.manageCategoriesBtn.addEventListener('click', openCategoryModal);
+  el.categoryModalClose.addEventListener('click', closeCategoryModal);
+  el.categoryModalOverlay.addEventListener('click', (e) => {
+    if (e.target === el.categoryModalOverlay) closeCategoryModal();
   });
 
-  el.classForm.addEventListener('submit', (e) => {
+  el.categoryForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = el.className.value.trim();
+    const name = el.categoryName.value.trim();
     if (!name) return;
-    classes.push({ id: uid(), name, color: selectedColor });
-    saveClasses();
-    el.className.value = '';
-    selectedColor = COLORS[classes.length % COLORS.length];
+    categories.push({ id: uid(), name, color: selectedColor });
+    saveCategories();
+    el.categoryName.value = '';
+    selectedColor = COLORS[categories.length % COLORS.length];
     isCustomColor = false;
     renderColorSwatches();
-    renderClassManagerList();
-    renderClassFilterOptions();
+    renderCategoryManagerList();
+    renderCategoryFilterOptions();
   });
 
   // ---------- filters ----------
@@ -437,12 +499,12 @@
     renderBoard();
   });
 
-  el.classFilter.addEventListener('change', (e) => {
-    filterClassId = e.target.value;
+  el.categoryFilter.addEventListener('change', (e) => {
+    filterCategoryId = e.target.value;
     renderBoard();
   });
 
-  // ---------- drag and drop ----------
+  // ---------- drag and drop (tasks between columns) ----------
 
   Object.values(lists).forEach((container) => {
     container.addEventListener('dragover', (e) => {
@@ -488,14 +550,14 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeTaskModal();
-      closeClassModal();
+      closeCategoryModal();
     }
   });
 
   // ---------- init ----------
 
-  renderClassFilterOptions();
-  renderTaskClassOptions();
+  renderCategoryFilterOptions();
+  renderTaskCategoryOptions();
   renderBoard();
   applyTheme(localStorage.getItem(STORAGE_THEME) === 'dark' ? 'dark' : 'light');
 })();

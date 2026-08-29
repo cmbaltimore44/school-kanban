@@ -1,7 +1,7 @@
 {
   "name": "school-kanban",
   "version": "1.0.0",
-  "description": "A minimal kanban board for tracking school assignments.",
+  "description": "A minimal kanban board for tracking tasks by category.",
   "main": "main.js",
   "author": "cmbaltimore44",
   "license": "UNLICENSED",
@@ -15,8 +15,8 @@
     "electron-builder": "^25.0.0"
   },
   "build": {
-    "appId": "com.baltimore.schoolkanban",
-    "productName": "School Kanban",
+    "appId": "com.baltimore.taskkanban",
+    "productName": "Task Kanban",
     "mac": {
       "category": "public.app-category.education",
       "target": "dmg",

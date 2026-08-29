@@ -1,13 +1,14 @@
-# School Kanban
+# Task Kanban
 
-A clean, minimal desktop kanban board for tracking school assignments, built with Electron, HTML, CSS, and JavaScript.
+A clean, minimal desktop kanban board for tracking tasks, built with Electron, HTML, CSS, and JavaScript.
 
 ## Features
 
 - Three columns: To Do, In Progress, Done — drag and drop cards between them
-- Tag assignments with classes, each with a color (pick a preset or a custom color)
+- Tag tasks with categories, each with a color (pick a preset or a custom color)
+- Reorder categories by dragging them in the category manager
 - Due dates with overdue/soon-due highlighting
-- Priority levels, notes, search, and filter by class
+- Priority levels, notes, search, and filter by category
 - Light/dark mode toggle
 - All data is stored locally on your machine (no accounts, no network)
 
@@ -27,8 +28,8 @@ After making changes to `main.js`, `preload.js`, `index.html`, `style.css`, or `
    ```bash
    npm run dist
    ```
-   This produces an updated `School Kanban.app` and `.dmg` in `dist/`.
-3. Open the new `.dmg` and drag `School Kanban.app` into `Applications` again to replace the old version (your assignment data is stored separately and won't be lost).
+   This produces an updated `Task Kanban.app` and `.dmg` in `dist/`.
+3. Open the new `.dmg` and drag `Task Kanban.app` into `Applications` again to replace the old version (your task data is stored separately and won't be lost).
 4. Commit your changes:
    ```bash
    git add -A
@@ -44,7 +45,7 @@ After making changes to `main.js`, `preload.js`, `index.html`, `style.css`, or `
 | `preload.js` | Isolated preload script (no privileged APIs currently exposed) |
 | `index.html` | App layout and modals |
 | `style.css` | Styling, including light/dark theme variables |
-| `renderer.js` | App logic: tasks, classes, filtering, drag-and-drop, persistence |
+| `renderer.js` | App logic: tasks, categories, filtering, drag-and-drop, persistence |
 | `build/icon.icns` | App icon used by the packaged `.app`/`.dmg` |
 | `build/icon.png` | Same icon, used for the Dock icon while running in dev mode |
 

@@ -108,13 +108,14 @@ input, textarea, select, button {
   border-color: var(--accent);
 }
 
-#class-filter {
+#category-filter {
   padding: 7px 8px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   outline: none;
+  max-width: 160px;
 }
 
 .btn {
@@ -387,6 +388,14 @@ input, textarea, select, button {
   background: var(--surface);
   color: var(--text);
   resize: vertical;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field select {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .field input:focus, .field select:focus, .field textarea:focus {
@@ -396,6 +405,10 @@ input, textarea, select, button {
 .field-row {
   display: flex;
   gap: 12px;
+}
+
+.field-row .field {
+  min-width: 0;
 }
 
 .modal-actions {
@@ -410,8 +423,8 @@ input, textarea, select, button {
   gap: 8px;
 }
 
-/* Class manager */
-.class-list {
+/* Category manager */
+.category-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -420,38 +433,56 @@ input, textarea, select, button {
   overflow-y: auto;
 }
 
-.class-row {
+.category-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
   border-radius: 8px;
   background: var(--surface-subtle);
+  cursor: grab;
 }
 
-.class-row .swatch {
+.category-row.dragging {
+  opacity: 0.4;
+}
+
+.category-row .drag-handle {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+  letter-spacing: -1px;
+}
+
+.category-row .swatch {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.class-row .class-name {
+.category-row .category-name {
   flex: 1;
   font-weight: 550;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.class-row .remove-class {
+.category-row .remove-category {
   background: transparent;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
   font-size: 16px;
   line-height: 1;
+  flex-shrink: 0;
 }
-.class-row .remove-class:hover { color: var(--danger); }
+.category-row .remove-category:hover { color: var(--danger); }
 
-.class-form {
+.category-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -459,7 +490,7 @@ input, textarea, select, button {
   padding-top: 14px;
 }
 
-.class-form input {
+.category-form input {
   padding: 7px 9px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -514,7 +545,7 @@ input, textarea, select, button {
   border-color: var(--text);
 }
 
-.empty-classes {
+.empty-categories {
   color: var(--text-muted);
   font-size: 12px;
 }

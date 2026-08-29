@@ -9,7 +9,7 @@ function createWindow() {
     height: 800,
     minWidth: 760,
     minHeight: 500,
-    title: 'School Kanban',
+    title: 'Task Kanban',
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#f5f5f7',
     icon: iconPath,

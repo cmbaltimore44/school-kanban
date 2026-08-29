@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
-<title>School Kanban</title>
+<title>Task Kanban</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-title">
-      <h1>Assignments</h1>
+      <h1>Tasks</h1>
       <span class="subtitle" id="task-count"></span>
     </div>
     <div class="topbar-controls">
-      <input type="search" id="search-input" placeholder="Search assignments…" />
-      <select id="class-filter">
-        <option value="">All classes</option>
+      <input type="search" id="search-input" placeholder="Search tasks…" />
+      <select id="category-filter">
+        <option value="">All categories</option>
       </select>
-      <button id="manage-classes-btn" class="btn btn-ghost">Classes</button>
-      <button id="new-task-btn" class="btn btn-primary">+ New Assignment</button>
+      <button id="manage-categories-btn" class="btn btn-ghost">Categories</button>
+      <button id="new-task-btn" class="btn btn-primary">+ New Task</button>
       <button id="theme-toggle-btn" class="icon-toggle-btn" title="Toggle dark mode">🌙</button>
     </div>
   </header>
@@ -53,7 +53,7 @@
   <div class="modal-overlay" id="task-modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="task-modal-title">New Assignment</h3>
+        <h3 id="task-modal-title">New Task</h3>
         <button class="icon-btn" id="task-modal-close">&times;</button>
       </div>
       <form id="task-form">
@@ -66,8 +66,8 @@
 
         <div class="field-row">
           <label class="field">
-            <span>Class</span>
-            <select id="task-class"></select>
+            <span>Category</span>
+            <select id="task-category"></select>
           </label>
 
           <label class="field">
@@ -101,23 +101,23 @@
     </div>
   </div>
 
-  <!-- Class manager modal -->
-  <div class="modal-overlay" id="class-modal-overlay">
+  <!-- Category manager modal -->
+  <div class="modal-overlay" id="category-modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3>Manage Classes</h3>
-        <button class="icon-btn" id="class-modal-close">&times;</button>
+        <h3>Manage Categories</h3>
+        <button class="icon-btn" id="category-modal-close">&times;</button>
       </div>
 
-      <div id="class-list" class="class-list"></div>
+      <div id="category-list" class="category-list"></div>
 
-      <form id="class-form" class="class-form">
-        <input type="text" id="class-name" placeholder="New class name" required />
+      <form id="category-form" class="category-form">
+        <input type="text" id="category-name" placeholder="New category name" required />
         <div class="color-swatches">
           <div id="color-swatches" class="color-swatches-presets"></div>
           <input type="color" id="custom-color-input" class="custom-color-option" title="Custom color" value="#3b6ef6" />
         </div>
-        <button type="submit" class="btn btn-primary">Add Class</button>
+        <button type="submit" class="btn btn-primary">Add Category</button>
       </form>
     </div>
   </div>
