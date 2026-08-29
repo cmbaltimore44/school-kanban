@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+<title>School Kanban</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>Assignments</h1>
+      <span class="subtitle" id="task-count"></span>
+    </div>
+    <div class="topbar-controls">
+      <input type="search" id="search-input" placeholder="Search assignments…" />
+      <select id="class-filter">
+        <option value="">All classes</option>
+      </select>
+      <button id="manage-classes-btn" class="btn btn-ghost">Classes</button>
+      <button id="new-task-btn" class="btn btn-primary">+ New Assignment</button>
+      <button id="theme-toggle-btn" class="icon-toggle-btn" title="Toggle dark mode">🌙</button>
+    </div>
+  </header>
+
+  <main class="board" id="board">
+    <section class="column" data-column="todo">
+      <div class="column-header">
+        <h2>To Do</h2>
+        <span class="column-count" id="count-todo">0</span>
+      </div>
+      <div class="card-list" data-column="todo" id="list-todo"></div>
+    </section>
+
+    <section class="column" data-column="doing">
+      <div class="column-header">
+        <h2>In Progress</h2>
+        <span class="column-count" id="count-doing">0</span>
+      </div>
+      <div class="card-list" data-column="doing" id="list-doing"></div>
+    </section>
+
+    <section class="column" data-column="done">
+      <div class="column-header">
+        <h2>Done</h2>
+        <span class="column-count" id="count-done">0</span>
+      </div>
+      <div class="card-list" data-column="done" id="list-done"></div>
+    </section>
+  </main>
+
+  <!-- Task modal -->
+  <div class="modal-overlay" id="task-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="task-modal-title">New Assignment</h3>
+        <button class="icon-btn" id="task-modal-close">&times;</button>
+      </div>
+      <form id="task-form">
+        <input type="hidden" id="task-id" />
+
+        <label class="field">
+          <span>Title</span>
+          <input type="text" id="task-title" required placeholder="e.g. Problem Set 4" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Class</span>
+            <select id="task-class"></select>
+          </label>
+
+          <label class="field">
+            <span>Due date</span>
+            <input type="date" id="task-due" />
+          </label>
+        </div>
+
+        <label class="field">
+          <span>Priority</span>
+          <select id="task-priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Notes</span>
+          <textarea id="task-notes" rows="3" placeholder="Optional details…"></textarea>
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-danger" id="task-delete-btn" hidden>Delete</button>
+          <div class="modal-actions-right">
+            <button type="button" class="btn btn-ghost" id="task-cancel-btn">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Class manager modal -->
+  <div class="modal-overlay" id="class-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Manage Classes</h3>
+        <button class="icon-btn" id="class-modal-close">&times;</button>
+      </div>
+
+      <div id="class-list" class="class-list"></div>
+
+      <form id="class-form" class="class-form">
+        <input type="text" id="class-name" placeholder="New class name" required />
+        <div class="color-swatches">
+          <div id="color-swatches" class="color-swatches-presets"></div>
+          <input type="color" id="custom-color-input" class="custom-color-option" title="Custom color" value="#3b6ef6" />
+        </div>
+        <button type="submit" class="btn btn-primary">Add Class</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

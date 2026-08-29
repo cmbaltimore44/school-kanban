@@ -1,0 +1,33 @@
+{
+  "name": "school-kanban",
+  "version": "1.0.0",
+  "description": "A minimal kanban board for tracking school assignments.",
+  "main": "main.js",
+  "author": "cmbaltimore44",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.baltimore.schoolkanban",
+    "productName": "School Kanban",
+    "mac": {
+      "category": "public.app-category.education",
+      "target": "dmg"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "style.css",
+      "renderer.js",
+      "assets/**/*"
+    ]
+  }
+}
